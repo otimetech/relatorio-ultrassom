@@ -92,7 +92,7 @@ const Index = () => {
 
   // Normalizar dados para suportar tanto vibracao quanto ultrassom
   const relatorio = normalizeRelatorio(data);
-  const shouldShowCompressedAirPage = relatorio.tipoVazamento?.trim().toLowerCase() === "ar";
+  const shouldShowCompressedAirPage = relatorio.tipo_vazamento?.trim().toLowerCase() === "ar";
 
   // Usar cliente do response ou do relatorio
   const clienteData = relatorio.cliente;
