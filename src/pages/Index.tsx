@@ -202,13 +202,11 @@ const Index = () => {
 
           <div className="mb-8">
             <p className="text-sm text-muted-foreground">A/C:</p>
-            <p className="font-semibold">{clienteData?.pessoa_contato || "Departamento de Manutenção"}</p>
-            {clienteData?.departamento_contato && <p className="text-sm text-muted-foreground">{clienteData.departamento_contato}</p>}
             {clienteData && <div className="mt-2 text-sm">
-                <p className="font-medium">{clienteData.nome}</p>
-                <p className="text-muted-foreground">{clienteData.email}</p>
-                <p className="text-muted-foreground">{clienteData.telefone}</p>
+                <p className="text-muted-foreground">{clienteData.pessoa_contato}</p>
+                {/* <p className="text-muted-foreground">{clienteData.telefone}</p> */}
               </div>}
+              {clienteData?.departamento_contato && <p className="font-semibold">{clienteData.departamento_contato}</p>}
           </div>
 
           <div className="mb-8">
