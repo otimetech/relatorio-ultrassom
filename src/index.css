@@ -946,11 +946,11 @@
     margin-top: 40px;
   }
 
-  /* Client logo on cover: larger fixed size in print */
+  /* Client logo on cover: fixed size for screen preview */
   img.client-cover-logo {
-    height: 28mm !important;
+    height: 106px !important;
     width: auto !important;
-    max-width: 80mm !important;
+    max-width: 302px !important;
     object-fit: contain !important;
   }
 }
