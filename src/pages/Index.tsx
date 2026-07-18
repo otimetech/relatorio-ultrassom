@@ -2,7 +2,7 @@ import { useParams, useSearchParams } from "react-router-dom";
 import ReportHeader from "@/components/ReportHeader";
 import ReportFooter from "@/components/ReportFooter";
 import ReportCoverImage from "@/components/ReportCoverImage";
-import ServicesGrid from "@/components/ServicesGrid";
+import ServicesGrid from "@/components/ServiceGrid";
 import { useRelatorio, RelatorioResponse } from "@/hooks/useRelatorio";
 import { UltrasomItem } from "@/types/vibracao";
 import planoVertical from "@/assets/plano-vertical.jpg";
@@ -80,6 +80,7 @@ const Index = () => {
 
   // Compatibiliza respostas legadas com o formato usado pela página
   const relatorio = normalizeRelatorio(data);
+  const shouldShowCompressedAirPage = relatorio.tipo_vazamento?.trim().toLowerCase() === "ar";
 
   // Usar cliente do response ou do relatorio
   const clienteData = relatorio.cliente;
@@ -233,6 +234,8 @@ const Index = () => {
               alt="Imagem de Alinhamento a Laser"
             />
 
+            
+
             {clienteData && <div className="bg-secondary/30 rounded-lg p-4 mb-6 text-center">
                 <h3 className="font-semibold text-primary mb-2">Cliente / Unidade</h3>
                 <p className="font-bold text-lg">{clienteData.nome} - {clienteData.cidade}/{clienteData.estado}</p>
@@ -248,7 +251,7 @@ const Index = () => {
             </div>
 
             {clienteData?.logo && <div className="mb-8">
-              <img src={clienteData.logo} alt={clienteData.nome} className="client-cover-logo mx-auto" />
+              <img src={clienteData.logo} alt={clienteData.nome} className="client-cover-logo h-40 w-auto mx-auto object-contain" />
             </div>}
           </div>
 
@@ -280,9 +283,10 @@ const Index = () => {
               <br />
               Relatório Nº <strong>{`${relatorio.id} ${relatorio.num_revisao ?? ""}`.trim()}</strong>.
               <br />
-                O alinhamento a laser entre eixos é a correção quanto as diferenças de posição entre elas através de 
-                instrumentação própria e de alta tecnologia onde são corrigidos com precisão de micros os desvios paralelos e angularmente, 
-                tais desvios que causam os esforços entre os eixos de transmissão e o desgaste prematuro dos mesmos
+              < br/>
+                O princípio do trabalho visa diagnosticar por intermédio do instrumento Digital ultrassonico
+              com indicação em tela LCD, os pontos com vazamento, e o quanto está sendo desperdiçado
+              em termos de vazão de energia, e o quanto representa financeiramente os desperdícios.
             </p>
           </div>
 
@@ -300,9 +304,105 @@ const Index = () => {
           <ReportFooter />
         </div>
 
+        {/* Second Page */}
+        {shouldShowCompressedAirPage && relatorio.resumo_ar_comprimido && (
         <div className="report-page print-break flex flex-col">
           <div className="flex-1">
             <ReportHeader />
+            
+            <h2 className="report-title">PONTOS DE VAZAMENTO DE AR COMPRIMIDO</h2>
+            
+            <div className="mb-6">
+              <p className="mb-4">
+                <span className="text-primary font-semibold">➤ Total de pontos de vazamento de Ar Comprimido = {relatorio.resumo_ar_comprimido.tabela.reduce((sum, item) => sum + item.qtd, 0)} pontos;</span>
+              </p>
+            </div>
+
+            {/* First Table */}
+            <div className="overflow-x-auto mb-6">
+              <table className="w-full border-collapse text-sm">
+                <thead>
+                  <tr className="bg-primary text-primary-foreground">
+                    <th className="border border-gray-300 p-2 text-left">Total KWh</th>
+                    <th className="border border-gray-300 p-2 text-left">Valor KWh (R$)</th>
+                    <th className="border border-gray-300 p-2 text-left">Total Horas Mês</th>
+                    <th className="border border-gray-300 p-2 text-left">Total Mês</th>
+                    <th className="border border-gray-300 p-2 text-left">Total Ano</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr className="hover:bg-secondary/50">
+                    <td className="border border-gray-300 p-2">{relatorio.resumo_ar_comprimido.total_kwh.toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 })}</td>
+                    <td className="border border-gray-300 p-2 font-bold">R$ {relatorio.resumo_ar_comprimido.valor_kwh.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                    <td className="border border-gray-300 p-2">{relatorio.resumo_ar_comprimido.horas_mes}</td>
+                    <td className="border border-gray-300 p-2">R$ {relatorio.resumo_ar_comprimido.custo_mes.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                    <td className="border border-gray-300 p-2">R$ {relatorio.resumo_ar_comprimido.custo_ano.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            {/* Second Table */}
+            <div className="overflow-x-auto mb-6">
+              <table className="w-full border-collapse text-sm">
+                <thead>
+                  <tr className="bg-primary text-primary-foreground">
+                    <th className="border border-gray-300 p-2 text-left">mm do furo</th>
+                    <th className="border border-gray-300 p-2 text-left">KW</th>
+                    <th className="border border-gray-300 p-2 text-left">Qtd</th>
+                    <th className="border border-gray-300 p-2 text-left">Total KWh</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {relatorio.resumo_ar_comprimido.tabela.map((item, index) => (
+                    <tr key={index} className="hover:bg-secondary/50">
+                      <td className="border border-gray-300 p-2">{item.mm_furo}</td>
+                      <td className="border border-gray-300 p-2">{item.kw.toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 })}</td>
+                      <td className="border border-gray-300 p-2">{item.qtd}</td>
+                      <td className="border border-gray-300 p-2">{item.total_kwh.toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 })}</td>
+                    </tr>
+                  ))}
+                  <tr className="bg-gray-100 font-semibold">
+                    <td className="border border-gray-300 p-2" colSpan={3}>Total</td>
+                    <td className="border border-gray-300 p-2">{relatorio.resumo_ar_comprimido.total_kwh.toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 })}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            {/* Summary Text */}
+            <div className="mt-6 text-sm text-foreground leading-relaxed">
+              <p className="mb-3">
+                <span className="font-semibold">Assim teremos: AR COMPRIMIDO</span>
+                <br />
+                {relatorio.resumo_ar_comprimido.total_kwh.toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 })} kW X {relatorio.resumo_ar_comprimido.horas_mes} horas mês = {relatorio.resumo_ar_comprimido.kwh_mes.toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 0 })} kWh/mês.
+                <br />
+                {relatorio.resumo_ar_comprimido.kwh_mes.toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 0 })} kWh/mês X R$ {relatorio.resumo_ar_comprimido.valor_kwh.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} kW/hora = R$ {relatorio.resumo_ar_comprimido.custo_mes.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} / mês.
+              </p>
+              <p className="mb-3 font-semibold text-primary">
+                O custo mensal nesta proporção de energia será de R$ {relatorio.resumo_ar_comprimido.custo_mes.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              </p>
+              <p className="mb-3">
+                {relatorio.resumo_ar_comprimido.total_kwh.toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 })} kW X {relatorio.resumo_ar_comprimido.horas_ano} horas ano = {relatorio.resumo_ar_comprimido.kwh_ano.toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 0 })} kWh/ano.
+                <br />
+                {relatorio.resumo_ar_comprimido.kwh_ano.toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 0 })} kWh/ano X R$ {relatorio.resumo_ar_comprimido.valor_kwh.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} kW/hora = R$ {relatorio.resumo_ar_comprimido.custo_ano.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} / ano.
+              </p>
+              <p className="font-semibold text-primary">
+                O custo anual nesta proporção de energia será de R$ {relatorio.resumo_ar_comprimido.custo_ano.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              </p>
+            </div>
+          </div>
+
+          <ReportFooter />
+        </div>
+        )}
+
+        {/* Vazamentos - 1 por pagina */}
+        {relatorio.vibracoes && relatorio.vibracoes.length > 0 ? (
+          relatorio.vibracoes.map((item, index) => (
+            <div key={item.id || index} className="report-page print-break flex flex-col">
+              <div className="flex-1">
+                <ReportHeader />
 
             <div className="mt-10 space-y-8 text-foreground">
               <section>
@@ -369,20 +469,40 @@ const Index = () => {
                   </table>
                 </div>
 
-                <div className="border border-gray-300 rounded-lg overflow-hidden">
-                  <p className="vazamento-photo-title">Foto do Equipamento</p>
-                  <div className="vazamento-photo-body">
-                    {conjuntoData?.foto_epto ? (
-                      <img
-                        src={conjuntoData.foto_epto}
-                        alt={conjuntoData.equipamento || "Foto do equipamento"}
-                        className="vazamento-photo"
-                      />
-                    ) : (
-                      <div className="image-placeholder h-full w-full">
-                        <span className="text-xs text-muted-foreground">Sem foto do equipamento</span>
-                      </div>
-                    )}
+                <div className="grid grid-cols-1 gap-4">
+                  <div className="border border-gray-300 rounded-lg overflow-hidden">
+                    <p className="vazamento-photo-title">Foto Equipamento</p>
+                    <div className="vazamento-photo-body">
+                      {item.foto ? (
+                        <img
+                          src={item.foto}
+                          alt={`Foto 1 - ${item.localizacao || item.local}`}
+                          className="vazamento-photo"
+                        />
+                      ) : (
+                        <div className="image-placeholder h-full w-full">
+                          <span className="text-xs text-muted-foreground">Sem foto 1</span>
+                        </div>
+                      )}
+                    </div>
+                    <p className="vazamento-photo-caption">Foto 1</p>
+                  </div>
+                  <div className="border border-gray-300 rounded-lg overflow-hidden">
+                    <p className="vazamento-photo-title">Foto Vazamento</p>
+                    <div className="vazamento-photo-body">
+                      {item.foto2 ? (
+                        <img
+                          src={item.foto2}
+                          alt={`Foto 2 - ${item.localizacao || item.local}`}
+                          className="vazamento-photo"
+                        />
+                      ) : (
+                        <div className="image-placeholder h-full w-full">
+                          <span className="text-xs text-muted-foreground">Sem foto 2</span>
+                        </div>
+                      )}
+                    </div>
+                    <p className="vazamento-photo-caption">Foto 2</p>
                   </div>
                   <p className="vazamento-photo-caption">Equipamento inspecionado</p>
                 </div>
@@ -422,13 +542,27 @@ const Index = () => {
         <div className="report-page print-break flex flex-col">
           <div className="flex-1">
             <ReportHeader />
-
-          <h2 className="report-title mb-2">Serviços Adicionais</h2>
-
-          <div className="bg-secondary/30 rounded-lg px-4 py-3 mb-3">
-            <p className="text-foreground leading-relaxed">
-              <span className="font-semibold">Medição de vibração:</span>{" "}
-              {isVibrationDone ? "Sim" : "Não"}
+          
+          <h2 className="report-title">CONSIDERAÇÕES FINAIS</h2>
+          
+          <div className="bg-secondary/30 rounded-lg p-6 mb-8">
+            <p className="text-foreground leading-relaxed mb-4">
+                <p>Sugestões: </p>
+                <p> 1) Recuperar os desperdícios causados pelos pontos de vazamento, elaborando um 
+                planejamento de manutenção com a máxima urgência. </p>
+                <p>2) Consertar unidades de conservação do Ar Comprimido (Sistema de Lubrifil / 
+                Reguladores de Pressão) e manômetros que estejam danificados. </p>
+                <p>3) Sugerimos que os Operadores das Máquinas, após a jornada de trabalho procurem 
+                fechar os registros gerais de cada máquina, como fator de economia 
+                (PROCEDIMENTOS). </p>
+                <p>4) Sugerimos que os Compressores de ar sejam medidos para se diagnosticar a 
+                Performance / Rendimento real. </p>
+                <p>5) A eficiência de um “layout” correto na rede de distribuição de ar comprimido principal e 
+                secundário, poderá contribuir muito para a redução do consumo de energia associado a 
+                perda de carga (queda de pressão). ..</p>
+            </p>
+            <p className="text-primary font-semibold">
+              Muito obrigado pela confiança.
             </p>
           </div>
 

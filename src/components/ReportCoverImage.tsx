@@ -1,20 +1,22 @@
 import { cn } from "@/lib/utils";
 
 type ReportCoverImageProps = {
-  src: string;
-  alt: string;
+  src?: string;
+  alt?: string;
   className?: string;
   containerClassName?: string;
   width?: string;
   height?: string;
 };
 
+const DEFAULT_COVER_IMAGE_SRC = "/alinhamento-cover.jpg";
+const DEFAULT_COVER_IMAGE_ALT = "Imagem de Alinhamento a Laser";
 const DEFAULT_WIDTH = "420px";
 const DEFAULT_HEIGHT = "180px";
 
 const ReportCoverImage = ({
-  src,
-  alt,
+  src = DEFAULT_COVER_IMAGE_SRC,
+  alt = DEFAULT_COVER_IMAGE_ALT,
   className,
   containerClassName,
   width = DEFAULT_WIDTH,
